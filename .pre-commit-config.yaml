@@ -1,0 +1,66 @@
+# Only run on commit.
+default_stages: [commit]
+# Stop running hooks after the first failure.
+fail_fast: true
+
+# Source for the hooks. Used by pre-commit to install the hooks.
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      # Trim trailing whitespace.
+      - id: trailing-whitespace
+      # Ensures that a file is either empty, or ends with one newline.
+      - id: end-of-file-fixer
+      # Protect specific branches from direct commits.
+      # Both main and master are protected by default if no branch argument is set.
+      - id: no-commit-to-branch
+  - repo: https://github.com/psf/black
+    rev: 23.9.1
+    hooks:
+      # Use black to format the code.
+      - id: black
+        files: \.py$
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.12.0
+    hooks:
+      # Use isort for sorting imports.
+      - id: isort
+        additional_dependencies: ["toml"]
+        files: \.py$
+  - repo: https://github.com/google/yamlfmt
+    # Format yaml files if needed.
+    rev: v0.10.0
+    hooks:
+      - id: yamlfmt
+        args: [
+            "-formatter",
+            "retain_line_breaks=true",
+            "-formatter",
+            "max_line_length=80",
+            "-formatter",
+            "scan_folded_as_literal=true", # !yamlfmt!:ignore
+          ]
+        files: \.(yml|yaml)$
+
+  - repo: https://github.com/jumanjihouse/pre-commit-hooks
+    rev: 3.0.0
+    hooks:
+      - id: shellcheck
+        files: \.sh$
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.7.0-1
+    hooks:
+      - id: shfmt
+        args: [--indent, "2", "--language-dialect", "bash", "--write"]
+        files: \.sh$
+
+  - repo: local
+    hooks:
+      - id: check-license
+        name: Check License Snippet
+        entry: python .internals/check_license.py
+        language: python
+        files: \.(py|yml|yaml)$
+        exclude: ".pre-commit-config.yaml|.github"
+        args: ["--fix"]
